@@ -111,13 +111,15 @@ const TeamCardWrapper = styled.div`
     font-weight: 500;
     background-color: ${props => {
       switch (props.status) {
-        case '사무실 출근':
+        case 'Office':
           return '#e3f2fd';
-        case '재택':
+        case 'WFH':
           return '#f1f8e9';
-        case '권장휴무 재택':
+        case 'Optional WFH':
           return '#fff3e0';
-        case '쉬는 날':
+        case 'Weekend':
+          return '#ffebee';
+        case 'Holiday':
           return '#ffebee';
         default:
           return '#f5f5f5';
@@ -125,13 +127,15 @@ const TeamCardWrapper = styled.div`
     }};
     color: ${props => {
       switch (props.status) {
-        case '사무실 출근':
+        case 'Office':
           return '#1565c0';
-        case '재택':
+        case 'WFH':
           return '#2e7d32';
-        case '권장휴무 재택':
+        case 'Optional WFH':
           return '#ef6c00';
-        case '쉬는 날':
+        case 'Weekend':
+          return '#c62828';
+        case 'Holiday':
           return '#c62828';
         default:
           return '#424242';
@@ -357,18 +361,18 @@ function App() {
 
   const getWorkStatus = useMemo(() => (team) => {
     if (isWeekend(today)) {
-      return '쉬는 날';
+      return 'Weekend';
     }
     
     if (holidays.some(h => h.date === currentDate)) {
-      return '쉬는 날';
+      return 'Holiday';
     }
     
-    // 현재 월의 팀 스케줄 가져오기
+    // Get current month's schedule
     const currentYearMonth = format(today, 'yyyy-MM');
     const currentMonthSchedule = getTeamSchedule(currentYearMonth);
     
-    // 해당 팀의 현재 월 출근 패턴
+    // Get team's current work pattern
     const teamPattern = currentMonthSchedule[team];
     const workDays = workPatterns[teamPattern];
     const isWorkDay = workDays.includes(
@@ -380,15 +384,15 @@ function App() {
     );
     
     if (recommendedHolidays.some(h => h.date === currentDate)) {
-      return '권장휴무 재택';
+      return 'Optional WFH';
     }
     
-    return isWorkDay ? '사무실 출근' : '재택';
+    return isWorkDay ? 'Office' : 'WFH';
   }, [currentDate, currentDayName, today]);
 
   return (
     <AppContainer>
-      <Title>팀별 근무 현황</Title>
+      <Title>Work From Home Schedule</Title>
       <StatusBoard>
         <TeamGrid>
           {Object.keys(initialTeamPatterns).map((team) => (
@@ -410,7 +414,7 @@ function App() {
       
       {selectedTeam && (
         <StatusMessage>
-          {selectedTeam} 팀은 오늘 {getWorkStatus(selectedTeam)} 입니다.
+          {selectedTeam} team is working {getWorkStatus(selectedTeam)} today.
         </StatusMessage>
       )}
 
@@ -420,13 +424,13 @@ function App() {
             active={activeTab === 'holidays'} 
             onClick={() => setActiveTab('holidays')}
           >
-            공휴일
+            Holidays
           </TabButton>
           <TabButton 
             active={activeTab === 'recommended'} 
             onClick={() => setActiveTab('recommended')}
           >
-            권장휴무일
+            Recommended Holidays
           </TabButton>
         </TabButtons>
 

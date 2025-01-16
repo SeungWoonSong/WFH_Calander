@@ -32,12 +32,12 @@ const generateMonthlySchedule = (yearMonth) => {
   const [year, month] = yearMonth.split('-').map(Number);
   // 2025-01 기준으로 몇 개월이 지났는지 계산
   const monthsOffset = (year - 2025) * 12 + (month - 1);
-  
+
   const schedule = {};
   Object.entries(initialTeamPatterns).forEach(([team, startPattern]) => {
     schedule[team] = getMonthlyPattern(startPattern, monthsOffset);
   });
-  
+
   return schedule;
 };
 

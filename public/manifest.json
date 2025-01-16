@@ -1,6 +1,6 @@
 {
-  "short_name": "WFH Calendar",
-  "name": "WFH Calendar - 팀별 근무 현황",
+  "short_name": "WFH Schedule",
+  "name": "Work From Home Schedule",
   "icons": [
     {
       "src": "favicon.ico",

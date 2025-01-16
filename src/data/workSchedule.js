@@ -10,7 +10,7 @@ export const workPatterns = {
 };
 
 // 초기 팀별 패턴 (2025년 1월 기준)
-const initialTeamPatterns = {
+export const initialTeamPatterns = {
   Orcas: 1,
   ApplePie: 2,
   Adelie: 3,

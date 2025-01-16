@@ -1,12 +1,124 @@
-// 팀별 출근 스케줄 (1: 월화수, 2: 화수목, 3: 수목금, 4: 목금월, 5: 금월화, 6: 월화수, 7: 수목금)
-export const teams = {
-  Orcas: 1,
-  ApplePie: 2,
-  Adelie: 3,
-  Skywalker: 4,
-  Carina: 5,
-  Glider: 6,
-  Moonwalker: 7,
+// 팀별 월간 출근 스케줄
+export const teamSchedules = {
+  "2025-01": {
+    Orcas: 1,      // 월화수 출근
+    ApplePie: 2,   // 화수목 출근
+    Adelie: 3,     // 수목금 출근
+    Skywalker: 4,  // 목금월 출근
+    Carina: 5,     // 금월화 출근
+    Glider: 6,     // 월화수 출근
+    Moonwalker: 7, // 수목금 출근
+  },
+  "2025-02": {
+    Orcas: 2,      // 화수목 출근
+    ApplePie: 3,   // 수목금 출근
+    Adelie: 4,     // 목금월 출근
+    Skywalker: 5,  // 금월화 출근
+    Carina: 6,     // 월화수 출근
+    Glider: 7,     // 수목금 출근
+    Moonwalker: 1, // 월화수 출근
+  },
+  "2025-03": {
+    Orcas: 3,      // 수목금 출근
+    ApplePie: 4,   // 목금월 출근
+    Adelie: 5,     // 금월화 출근
+    Skywalker: 6,  // 월화수 출근
+    Carina: 7,     // 수목금 출근
+    Glider: 1,     // 월화수 출근
+    Moonwalker: 2, // 화수목 출근
+  },
+  "2025-04": {
+    Orcas: 4,      // 목금월 출근
+    ApplePie: 5,   // 금월화 출근
+    Adelie: 6,     // 월화수 출근
+    Skywalker: 7,  // 수목금 출근
+    Carina: 1,     // 월화수 출근
+    Glider: 2,     // 화수목 출근
+    Moonwalker: 3, // 수목금 출근
+  },
+  "2025-05": {
+    Orcas: 5,      // 금월화 출근
+    ApplePie: 6,   // 월화수 출근
+    Adelie: 7,     // 수목금 출근
+    Skywalker: 1,  // 월화수 출근
+    Carina: 2,     // 화수목 출근
+    Glider: 3,     // 수목금 출근
+    Moonwalker: 4, // 목금월 출근
+  },
+  "2025-06": {
+    Orcas: 6,      // 월화수 출근
+    ApplePie: 7,   // 수목금 출근
+    Adelie: 1,     // 월화수 출근
+    Skywalker: 2,  // 화수목 출근
+    Carina: 3,     // 수목금 출근
+    Glider: 4,     // 목금월 출근
+    Moonwalker: 5, // 금월화 출근
+  },
+  "2025-07": {
+    Orcas: 7,      // 수목금 출근
+    ApplePie: 1,   // 월화수 출근
+    Adelie: 2,     // 화수목 출근
+    Skywalker: 3,  // 수목금 출근
+    Carina: 4,     // 목금월 출근
+    Glider: 5,     // 금월화 출근
+    Moonwalker: 6, // 월화수 출근
+  },
+  "2025-08": {
+    Orcas: 1,      // 월화수 출근
+    ApplePie: 2,   // 화수목 출근
+    Adelie: 3,     // 수목금 출근
+    Skywalker: 4,  // 목금월 출근
+    Carina: 5,     // 금월화 출근
+    Glider: 6,     // 월화수 출근
+    Moonwalker: 7, // 수목금 출근
+  },
+  "2025-09": {
+    Orcas: 2,      // 화수목 출근
+    ApplePie: 3,   // 수목금 출근
+    Adelie: 4,     // 목금월 출근
+    Skywalker: 5,  // 금월화 출근
+    Carina: 6,     // 월화수 출근
+    Glider: 7,     // 수목금 출근
+    Moonwalker: 1, // 월화수 출근
+  },
+  "2025-10": {
+    Orcas: 3,      // 수목금 출근
+    ApplePie: 4,   // 목금월 출근
+    Adelie: 5,     // 금월화 출근
+    Skywalker: 6,  // 월화수 출근
+    Carina: 7,     // 수목금 출근
+    Glider: 1,     // 월화수 출근
+    Moonwalker: 2, // 화수목 출근
+  },
+  "2025-11": {
+    Orcas: 4,      // 목금월 출근
+    ApplePie: 5,   // 금월화 출근
+    Adelie: 6,     // 월화수 출근
+    Skywalker: 7,  // 수목금 출근
+    Carina: 1,     // 월화수 출근
+    Glider: 2,     // 화수목 출근
+    Moonwalker: 3, // 수목금 출근
+  },
+  "2025-12": {
+    Orcas: 5,      // 금월화 출근
+    ApplePie: 6,   // 월화수 출근
+    Adelie: 7,     // 수목금 출근
+    Skywalker: 1,  // 월화수 출근
+    Carina: 2,     // 화수목 출근
+    Glider: 3,     // 수목금 출근
+    Moonwalker: 4, // 목금월 출근
+  }
+};
+
+// 요일별 출근 패턴
+export const workPatterns = {
+  1: ["월", "화", "수"],
+  2: ["화", "수", "목"],
+  3: ["수", "목", "금"],
+  4: ["목", "금", "월"],
+  5: ["금", "월", "화"],
+  6: ["월", "화", "수"],
+  7: ["수", "목", "금"],
 };
 
 // 공휴일 데이터 (YYYY-MM-DD 형식)
@@ -50,14 +162,3 @@ export const recommendedHolidays = [
   { date: "2025-12-29", name: "연말 휴무" },
   { date: "2025-12-30", name: "연말 휴무" },
 ];
-
-// 요일별 출근 패턴
-export const workPatterns = {
-  1: ["월", "화", "수"],
-  2: ["화", "수", "목"],
-  3: ["수", "목", "금"],
-  4: ["목", "금", "월"],
-  5: ["금", "월", "화"],
-  6: ["월", "화", "수"],
-  7: ["수", "목", "금"],
-};

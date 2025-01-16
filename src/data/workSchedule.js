@@ -1,115 +1,3 @@
-// 팀별 월간 출근 스케줄
-export const teamSchedules = {
-  "2025-01": {
-    Orcas: 1,      // 월화수 출근
-    ApplePie: 2,   // 화수목 출근
-    Adelie: 3,     // 수목금 출근
-    Skywalker: 4,  // 목금월 출근
-    Carina: 5,     // 금월화 출근
-    Glider: 6,     // 월화수 출근
-    Moonwalker: 7, // 수목금 출근
-  },
-  "2025-02": {
-    Orcas: 2,      // 화수목 출근
-    ApplePie: 3,   // 수목금 출근
-    Adelie: 4,     // 목금월 출근
-    Skywalker: 5,  // 금월화 출근
-    Carina: 6,     // 월화수 출근
-    Glider: 7,     // 수목금 출근
-    Moonwalker: 1, // 월화수 출근
-  },
-  "2025-03": {
-    Orcas: 3,      // 수목금 출근
-    ApplePie: 4,   // 목금월 출근
-    Adelie: 5,     // 금월화 출근
-    Skywalker: 6,  // 월화수 출근
-    Carina: 7,     // 수목금 출근
-    Glider: 1,     // 월화수 출근
-    Moonwalker: 2, // 화수목 출근
-  },
-  "2025-04": {
-    Orcas: 4,      // 목금월 출근
-    ApplePie: 5,   // 금월화 출근
-    Adelie: 6,     // 월화수 출근
-    Skywalker: 7,  // 수목금 출근
-    Carina: 1,     // 월화수 출근
-    Glider: 2,     // 화수목 출근
-    Moonwalker: 3, // 수목금 출근
-  },
-  "2025-05": {
-    Orcas: 5,      // 금월화 출근
-    ApplePie: 6,   // 월화수 출근
-    Adelie: 7,     // 수목금 출근
-    Skywalker: 1,  // 월화수 출근
-    Carina: 2,     // 화수목 출근
-    Glider: 3,     // 수목금 출근
-    Moonwalker: 4, // 목금월 출근
-  },
-  "2025-06": {
-    Orcas: 6,      // 월화수 출근
-    ApplePie: 7,   // 수목금 출근
-    Adelie: 1,     // 월화수 출근
-    Skywalker: 2,  // 화수목 출근
-    Carina: 3,     // 수목금 출근
-    Glider: 4,     // 목금월 출근
-    Moonwalker: 5, // 금월화 출근
-  },
-  "2025-07": {
-    Orcas: 7,      // 수목금 출근
-    ApplePie: 1,   // 월화수 출근
-    Adelie: 2,     // 화수목 출근
-    Skywalker: 3,  // 수목금 출근
-    Carina: 4,     // 목금월 출근
-    Glider: 5,     // 금월화 출근
-    Moonwalker: 6, // 월화수 출근
-  },
-  "2025-08": {
-    Orcas: 1,      // 월화수 출근
-    ApplePie: 2,   // 화수목 출근
-    Adelie: 3,     // 수목금 출근
-    Skywalker: 4,  // 목금월 출근
-    Carina: 5,     // 금월화 출근
-    Glider: 6,     // 월화수 출근
-    Moonwalker: 7, // 수목금 출근
-  },
-  "2025-09": {
-    Orcas: 2,      // 화수목 출근
-    ApplePie: 3,   // 수목금 출근
-    Adelie: 4,     // 목금월 출근
-    Skywalker: 5,  // 금월화 출근
-    Carina: 6,     // 월화수 출근
-    Glider: 7,     // 수목금 출근
-    Moonwalker: 1, // 월화수 출근
-  },
-  "2025-10": {
-    Orcas: 3,      // 수목금 출근
-    ApplePie: 4,   // 목금월 출근
-    Adelie: 5,     // 금월화 출근
-    Skywalker: 6,  // 월화수 출근
-    Carina: 7,     // 수목금 출근
-    Glider: 1,     // 월화수 출근
-    Moonwalker: 2, // 화수목 출근
-  },
-  "2025-11": {
-    Orcas: 4,      // 목금월 출근
-    ApplePie: 5,   // 금월화 출근
-    Adelie: 6,     // 월화수 출근
-    Skywalker: 7,  // 수목금 출근
-    Carina: 1,     // 월화수 출근
-    Glider: 2,     // 화수목 출근
-    Moonwalker: 3, // 수목금 출근
-  },
-  "2025-12": {
-    Orcas: 5,      // 금월화 출근
-    ApplePie: 6,   // 월화수 출근
-    Adelie: 7,     // 수목금 출근
-    Skywalker: 1,  // 월화수 출근
-    Carina: 2,     // 화수목 출근
-    Glider: 3,     // 수목금 출근
-    Moonwalker: 4, // 목금월 출근
-  }
-};
-
 // 요일별 출근 패턴
 export const workPatterns = {
   1: ["월", "화", "수"],
@@ -119,6 +7,43 @@ export const workPatterns = {
   5: ["금", "월", "화"],
   6: ["월", "화", "수"],
   7: ["수", "목", "금"],
+};
+
+// 초기 팀별 패턴 (2025년 1월 기준)
+const initialTeamPatterns = {
+  Orcas: 1,
+  ApplePie: 2,
+  Adelie: 3,
+  Skywalker: 4,
+  Carina: 5,
+  Glider: 6,
+  Moonwalker: 7,
+};
+
+// 월별 패턴 계산 함수
+const getMonthlyPattern = (startPattern, monthOffset) => {
+  // (시작 패턴 + 월 오프셋 - 1) % 7 + 1
+  // -1과 +1을 하는 이유는 패턴이 1부터 7까지이기 때문
+  return ((startPattern + monthOffset - 1) % 7) + 1;
+};
+
+// 특정 년월의 팀별 스케줄 생성
+const generateMonthlySchedule = (yearMonth) => {
+  const [year, month] = yearMonth.split('-').map(Number);
+  // 2025-01 기준으로 몇 개월이 지났는지 계산
+  const monthsOffset = (year - 2025) * 12 + (month - 1);
+  
+  const schedule = {};
+  Object.entries(initialTeamPatterns).forEach(([team, startPattern]) => {
+    schedule[team] = getMonthlyPattern(startPattern, monthsOffset);
+  });
+  
+  return schedule;
+};
+
+// 팀별 월간 출근 스케줄
+export const getTeamSchedule = (yearMonth) => {
+  return generateMonthlySchedule(yearMonth);
 };
 
 // 공휴일 데이터 (YYYY-MM-DD 형식)

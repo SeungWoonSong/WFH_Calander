@@ -2,7 +2,7 @@ import React, { useState, useMemo, memo } from 'react';
 import styled from '@emotion/styled';
 import { format, isWeekend, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { teamSchedules, holidays, recommendedHolidays, workPatterns } from './data/workSchedule';
+import { workPatterns, holidays, recommendedHolidays, getTeamSchedule, initialTeamPatterns } from './data/workSchedule';
 
 const AppContainer = styled.div`
   max-width: 1200px;
@@ -366,7 +366,7 @@ function App() {
     
     // 현재 월의 팀 스케줄 가져오기
     const currentYearMonth = format(today, 'yyyy-MM');
-    const currentMonthSchedule = teamSchedules[currentYearMonth] || teamSchedules["2025-01"];
+    const currentMonthSchedule = getTeamSchedule(currentYearMonth);
     
     // 해당 팀의 현재 월 출근 패턴
     const teamPattern = currentMonthSchedule[team];
@@ -391,14 +391,14 @@ function App() {
       <Title>팀별 근무 현황</Title>
       <StatusBoard>
         <TeamGrid>
-          {Object.keys(teamSchedules["2025-01"]).map((team) => (
+          {Object.keys(initialTeamPatterns).map((team) => (
             <TeamCard key={team} team={team} status={getWorkStatus(team)} />
           ))}
         </TeamGrid>
       </StatusBoard>
       
       <TeamButtons>
-        {Object.keys(teamSchedules["2025-01"]).map((team) => (
+        {Object.keys(initialTeamPatterns).map((team) => (
           <TeamButton
             key={team}
             onClick={() => setSelectedTeam(team)}

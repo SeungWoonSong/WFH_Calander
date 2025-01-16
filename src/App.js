@@ -113,9 +113,9 @@ const TeamCardWrapper = styled.div`
       switch (props.status) {
         case 'Office':
           return '#e3f2fd';
-        case 'WFH':
+        case 'Home':
           return '#f1f8e9';
-        case 'Optional WFH':
+        case 'Flexible Home':
           return '#fff3e0';
         case 'Weekend':
           return '#ffebee';
@@ -129,9 +129,9 @@ const TeamCardWrapper = styled.div`
       switch (props.status) {
         case 'Office':
           return '#1565c0';
-        case 'WFH':
+        case 'Home':
           return '#2e7d32';
-        case 'Optional WFH':
+        case 'Flexible Home':
           return '#ef6c00';
         case 'Weekend':
           return '#c62828';
@@ -209,6 +209,44 @@ const StatusMessage = styled.div`
   @media (max-width: 768px) {
     display: none;
   }
+`;
+
+const StatusText = styled.span`
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: ${props => {
+    switch (props.status) {
+      case 'Office':
+        return '#e3f2fd';
+      case 'Home':
+        return '#f1f8e9';
+      case 'Flexible Home':
+        return '#fff3e0';
+      case 'Weekend':
+        return '#ffebee';
+      case 'Holiday':
+        return '#ffebee';
+      default:
+        return '#f5f5f5';
+    }
+  }};
+  color: ${props => {
+    switch (props.status) {
+      case 'Office':
+        return '#1565c0';
+      case 'Home':
+        return '#2e7d32';
+      case 'Flexible Home':
+        return '#ef6c00';
+      case 'Weekend':
+        return '#c62828';
+      case 'Holiday':
+        return '#c62828';
+      default:
+        return '#424242';
+    }
+  }};
 `;
 
 const HolidaySection = styled.div`
@@ -384,10 +422,10 @@ function App() {
     );
     
     if (recommendedHolidays.some(h => h.date === currentDate)) {
-      return 'Optional WFH';
+      return 'Flexible Home';
     }
     
-    return isWorkDay ? 'Office' : 'WFH';
+    return isWorkDay ? 'Office' : 'Home';
   }, [currentDate, currentDayName, today]);
 
   return (
@@ -414,7 +452,7 @@ function App() {
       
       {selectedTeam && (
         <StatusMessage>
-          {selectedTeam} team is working {getWorkStatus(selectedTeam)} today.
+          {selectedTeam} team is <StatusText status={getWorkStatus(selectedTeam)}>{getWorkStatus(selectedTeam)}</StatusText> today
         </StatusMessage>
       )}
 

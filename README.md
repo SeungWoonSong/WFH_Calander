@@ -84,6 +84,66 @@ export const teams = {
 - 모바일: 테이블 형태의 컴팩트한 레이아웃
 - 브레이크포인트: 768px
 
+## 성능 최적화
+
+### 1. 코드 최적화
+- React.memo를 사용한 불필요한 리렌더링 방지
+- useMemo를 통한 계산 결과 캐싱
+- 정적 에셋의 캐싱 설정
+
+### 2. 개발 도구
+- ESLint: 코드 품질 관리
+- Prettier: 코드 스타일 통일
+- source-map-explorer: 번들 크기 분석
+
+### 3. 성능 분석
+번들 크기 분석:
+```bash
+npm run analyze
+# 또는
+yarn analyze
+```
+
+코드 품질 검사:
+```bash
+npm run lint
+# 또는
+yarn lint
+```
+
+코드 포맷팅:
+```bash
+npm run format
+# 또는
+yarn format
+```
+
+## Vercel 배포
+
+1. GitHub에 코드를 푸시합니다.
+
+2. [Vercel](https://vercel.com)에서 새 프로젝트를 생성합니다:
+   - GitHub 저장소 연결
+   - 프레임워크 프리셋: Create React App
+   - 환경 변수 설정 (필요한 경우)
+
+3. 자동 배포가 완료될 때까지 기다립니다.
+
+### 환경 변수 설정 (필요한 경우)
+```bash
+GENERATE_SOURCEMAP=false  # 프로덕션 소스맵 비활성화
+```
+
+### 커스텀 도메인 설정
+1. Vercel 프로젝트 설정에서 'Domains' 섹션으로 이동
+2. 도메인 추가 및 DNS 설정 진행
+
+## 성능 모니터링
+
+- Vercel Analytics를 통한 실시간 성능 모니터링
+- Lighthouse 점수 확인
+- Core Web Vitals 모니터링
+
 ## 라이선스
 
 MIT License

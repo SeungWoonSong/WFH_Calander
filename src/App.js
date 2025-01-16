@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import styled from '@emotion/styled';
 import { format, isWeekend, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -62,7 +62,7 @@ const TeamGrid = styled.div`
   }
 `;
 
-const TeamCard = styled.div`
+const TeamCardWrapper = styled.div`
   background: #ffffff;
   padding: 20px;
   border-radius: 15px;
@@ -278,7 +278,7 @@ const HolidayList = styled.ul`
   }
 `;
 
-const HolidayItem = styled.li`
+const HolidayItemWrapper = styled.li`
   padding: 15px 20px;
   margin: 8px 0;
   background: #ffffff;
@@ -326,20 +326,40 @@ const HolidayItem = styled.li`
   }
 `;
 
+const TeamCard = memo(({ team, status }) => (
+  <TeamCardWrapper status={status}>
+    <h3>{team}</h3>
+    <p>{status}</p>
+  </TeamCardWrapper>
+));
+
+const HolidayItem = memo(({ date, name, formatDateWithDay }) => (
+  <HolidayItemWrapper>
+    <div className="date-section">
+      <span>{formatDateWithDay(date)}</span>
+    </div>
+    <span className="name">{name}</span>
+  </HolidayItemWrapper>
+));
+
 function App() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [activeTab, setActiveTab] = useState('holidays');
-  const today = new Date();
-  const currentDate = format(today, 'yyyy-MM-dd');
-  const currentDayName = format(today, 'E');
-  
-  const getWorkStatus = (team) => {
-    // 주말인 경우
+  const today = useMemo(() => new Date(), []);
+  const currentDate = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
+  const currentDayName = useMemo(() => format(today, 'E'), [today]);
+
+  const formatDateWithDay = useMemo(() => (dateString) => {
+    const date = parseISO(dateString);
+    const dayName = format(date, 'EEE', { locale: ko });
+    return `${dateString} (${dayName})`;
+  }, []);
+
+  const getWorkStatus = useMemo(() => (team) => {
     if (isWeekend(today)) {
       return '쉬는 날';
     }
     
-    // 공휴일인 경우
     if (holidays.some(h => h.date === currentDate)) {
       return '쉬는 날';
     }
@@ -354,19 +374,12 @@ function App() {
       currentDayName === 'Fri' ? '금' : ''
     );
     
-    // 권장 휴무일인 경우
     if (recommendedHolidays.some(h => h.date === currentDate)) {
       return '권장휴무 재택';
     }
     
     return isWorkDay ? '사무실 출근' : '재택';
-  };
-
-  const formatDateWithDay = (dateString) => {
-    const date = parseISO(dateString);
-    const dayName = format(date, 'EEE', { locale: ko });
-    return `${dateString} (${dayName})`;
-  };
+  }, [currentDate, currentDayName, today]);
 
   return (
     <AppContainer>
@@ -374,10 +387,7 @@ function App() {
       <StatusBoard>
         <TeamGrid>
           {Object.keys(teams).map((team) => (
-            <TeamCard key={team} status={getWorkStatus(team)}>
-              <h3>{team}</h3>
-              <p>{getWorkStatus(team)}</p>
-            </TeamCard>
+            <TeamCard key={team} team={team} status={getWorkStatus(team)} />
           ))}
         </TeamGrid>
       </StatusBoard>
@@ -418,21 +428,11 @@ function App() {
         <HolidayList>
           {activeTab === 'holidays' ? (
             holidays.map(({ date, name }) => (
-              <HolidayItem key={date}>
-                <div className="date-section">
-                  <span>{formatDateWithDay(date)}</span>
-                </div>
-                <span className="name">{name}</span>
-              </HolidayItem>
+              <HolidayItem key={date} date={date} name={name} formatDateWithDay={formatDateWithDay} />
             ))
           ) : (
             recommendedHolidays.map(({ date, name }) => (
-              <HolidayItem key={date}>
-                <div className="date-section">
-                  <span>{formatDateWithDay(date)}</span>
-                </div>
-                <span className="name">{name}</span>
-              </HolidayItem>
+              <HolidayItem key={date} date={date} name={name} formatDateWithDay={formatDateWithDay} />
             ))
           )}
         </HolidayList>

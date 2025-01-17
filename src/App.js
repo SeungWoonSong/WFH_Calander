@@ -214,6 +214,10 @@ const StatusMessage = styled.div`
     strong {
       color: #1565c0;
       font-weight: 600;
+      
+      .month {
+        color: #1a237e;
+      }
     }
   }
 
@@ -402,7 +406,7 @@ function App() {
   const currentDate = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
   const currentDayName = useMemo(() => format(today, 'E'), [today]);
   const currentYearMonth = useMemo(() => format(today, 'yyyy-MM'), [today]);
-  const currentMonth = useMemo(() => format(today, 'MMM'), [today]);
+  const currentMonth = useMemo(() => format(today, 'MMMM'), [today]);
 
   const formatDateWithDay = useMemo(() => (dateString) => {
     const date = parseISO(dateString);
@@ -484,7 +488,7 @@ function App() {
         <StatusMessage>
           {selectedTeam} team is <StatusText status={getWorkStatus(selectedTeam)}>{getWorkStatus(selectedTeam)}</StatusText> today
           <div className="office-days">
-            <strong>{currentMonth} Office Days</strong>: {getTeamOfficeDays(selectedTeam).join(', ')}
+            <strong><span className="month">{currentMonth}</span> Office Days</strong>: {getTeamOfficeDays(selectedTeam).join(', ')}
           </div>
         </StatusMessage>
       )}

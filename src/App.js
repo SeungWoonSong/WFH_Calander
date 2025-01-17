@@ -422,6 +422,11 @@ const TeamCard = memo(({ team, status }) => {
   // eslint-disable-next-line no-unused-vars
   const [clicks, setClicks] = useState([]);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
+  const [randomImage] = useState(() => {
+    const images = ['Adelie1', 'Adelie2', 'Adelie3'];
+    const randomIndex = Math.floor(Math.random() * images.length);
+    return images[randomIndex];
+  });
 
   const handleClick = useCallback(() => {
     if (team !== 'Adelie') return;
@@ -447,7 +452,7 @@ const TeamCard = memo(({ team, status }) => {
         show={showEasterEgg} 
         onClick={() => setShowEasterEgg(false)}
       >
-        <img src="/JaeSungTheKing.png" alt="Easter Egg" />
+        <img src={`/${randomImage}.jpeg`} alt="Easter Egg" />
       </EasterEgg>
     </>
   );

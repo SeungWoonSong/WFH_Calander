@@ -447,6 +447,16 @@ const TeamCard = memo(({ team, status }) => {
       <TeamCardWrapper status={status} onClick={handleClick}>
         <h3>{team}</h3>
         <p>{status}</p>
+        {team === 'Adelie' && clicks.length > 0 && (
+          <div style={{ 
+            fontSize: '0.8rem', 
+            color: '#666', 
+            marginTop: '5px',
+            opacity: 0.7 
+          }}>
+            {10 - clicks.length} more clicks for surprise in 2 seconds
+          </div>
+        )}
       </TeamCardWrapper>
       <EasterEgg 
         show={showEasterEgg} 

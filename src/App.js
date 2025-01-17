@@ -467,25 +467,20 @@ const ViewToggle = styled.button`
 `;
 
 const MonthSelector = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 40px 200px 40px;
   gap: 10px;
   margin-bottom: 20px;
   align-items: center;
+  justify-content: center;
+  text-align: center;
 `;
 
-const MonthButton = styled.button`
-  padding: 8px 16px;
-  background: ${props => props.active ? '#1a237e' : '#ffffff'};
-  color: ${props => props.active ? '#ffffff' : '#1a237e'};
-  border: 1px solid #1a237e;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: ${props => props.active ? '#1a237e' : '#e8eaf6'};
-  }
+const MonthDisplay = styled.div`
+  font-weight: bold;
+  font-size: 1.1rem;
+  min-width: 200px;
+  text-align: center;
 `;
 
 const NavigationButton = styled.button`
@@ -520,12 +515,6 @@ function App() {
     return next;
   }, [today]);
 
-  const nextNextMonth = useMemo(() => {
-    const next = new Date(today);
-    next.setMonth(next.getMonth() + 2);
-    return next;
-  }, [today]);
-
   const currentDate = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
   const currentDayName = useMemo(() => format(today, 'E'), [today]);
   const currentYearMonth = useMemo(() => format(today, 'yyyy-MM'), [today]);
@@ -533,14 +522,76 @@ function App() {
   const nextMonthName = useMemo(() => format(nextMonth, 'MMMM'), [nextMonth]);
   const nextMonthYearMonth = useMemo(() => format(nextMonth, 'yyyy-MM'), [nextMonth]);
 
-  const nextNextMonthName = useMemo(() => format(nextNextMonth, 'MMMM'), [nextNextMonth]);
-  const nextNextMonthYearMonth = useMemo(() => format(nextNextMonth, 'yyyy-MM'), [nextNextMonth]);
+  const getMonthInfo = (offset) => {
+    const date = new Date(today);
+    date.setMonth(date.getMonth() + offset);
+    return {
+      yearMonth: format(date, 'yyyy-MM'),
+      monthName: format(date, 'MMMM'),
+      isValid: date.getFullYear() >= 2025 && (date.getFullYear() > 2025 || date.getMonth() >= 0)
+    };
+  };
 
-  const formatDateWithDay = useMemo(() => (dateString) => {
-    const date = parseISO(dateString);
-    const dayName = format(date, 'EEE', { locale: ko });
-    return `${dateString} (${dayName})`;
-  }, []);
+  const renderTeamChart = () => {
+    const weekDays = ['월', '화', '수', '목', '금'];
+    const monthInfo = getMonthInfo(monthOffset);
+    const monthSchedule = monthInfo.isValid ? getTeamSchedule(monthInfo.yearMonth) : null;
+    
+    return (
+      <ChartView>
+        <ViewToggle onClick={() => setShowChart(false)}>
+          Switch to Card View
+        </ViewToggle>
+        <MonthSelector>
+          <NavigationButton 
+            onClick={() => setMonthOffset(prev => prev - 1)}
+            disabled={!getMonthInfo(monthOffset - 1).isValid}
+          >
+            &lt;
+          </NavigationButton>
+          <MonthDisplay>
+            {monthInfo.monthName} {format(new Date(monthInfo.yearMonth), 'yyyy')}
+          </MonthDisplay>
+          <NavigationButton 
+            onClick={() => setMonthOffset(prev => prev + 1)}
+          >
+            &gt;
+          </NavigationButton>
+        </MonthSelector>
+        {monthInfo.isValid ? (
+          <>
+            <ChartGrid>
+              <ChartHeader>Team</ChartHeader>
+              {weekDays.map(day => (
+                <ChartHeader key={day}>{day}</ChartHeader>
+              ))}
+              
+              {Object.entries(monthSchedule).map(([team, schedule]) => (
+                <React.Fragment key={team}>
+                  <ChartTeamName>{team}</ChartTeamName>
+                  {weekDays.map(day => {
+                    const isOfficeDay = workPatterns[schedule.pattern].includes(day);
+                    return (
+                      <ChartCell key={`${team}-${day}`} isOfficeDay={isOfficeDay}>
+                        {isOfficeDay ? 'Office' : 'Home'}
+                      </ChartCell>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </ChartGrid>
+            <div style={{ marginTop: '20px', fontSize: '0.9rem', color: '#666' }}>
+              WFH Period: {getTeamOfficeDays(Object.keys(monthSchedule)[0], monthInfo.yearMonth).period}
+            </div>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+            No schedule data available before January 2025
+          </div>
+        )}
+      </ChartView>
+    );
+  };
 
   const getTeamOfficeDays = useMemo(() => (team, yearMonth) => {
     const monthSchedule = getTeamSchedule(yearMonth);
@@ -592,67 +643,11 @@ function App() {
     return isWorkDay ? 'Office' : 'Home';
   }, [currentDate, currentDayName, today, currentYearMonth]);
 
-  const getMonthInfo = (offset) => {
-    const date = new Date(today);
-    date.setMonth(date.getMonth() + offset);
-    return {
-      yearMonth: format(date, 'yyyy-MM'),
-      monthName: format(date, 'MMMM')
-    };
-  };
-
-  const renderTeamChart = () => {
-    const weekDays = ['월', '화', '수', '목', '금'];
-    const monthInfo = getMonthInfo(monthOffset);
-    const monthSchedule = getTeamSchedule(monthInfo.yearMonth);
-    
-    return (
-      <ChartView>
-        <ViewToggle onClick={() => setShowChart(false)}>
-          Switch to Card View
-        </ViewToggle>
-        <MonthSelector>
-          <NavigationButton 
-            onClick={() => setMonthOffset(prev => prev - 1)}
-          >
-            &lt;
-          </NavigationButton>
-          <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
-            {monthInfo.monthName}
-          </div>
-          <NavigationButton 
-            onClick={() => setMonthOffset(prev => prev + 1)}
-          >
-            &gt;
-          </NavigationButton>
-        </MonthSelector>
-        <h3>{monthInfo.monthName} Team Office Schedule</h3>
-        <ChartGrid>
-          <ChartHeader>Team</ChartHeader>
-          {weekDays.map(day => (
-            <ChartHeader key={day}>{day}</ChartHeader>
-          ))}
-          
-          {Object.entries(monthSchedule).map(([team, schedule]) => (
-            <React.Fragment key={team}>
-              <ChartTeamName>{team}</ChartTeamName>
-              {weekDays.map(day => {
-                const isOfficeDay = workPatterns[schedule.pattern].includes(day);
-                return (
-                  <ChartCell key={`${team}-${day}`} isOfficeDay={isOfficeDay}>
-                    {isOfficeDay ? 'Office' : 'Home'}
-                  </ChartCell>
-                );
-              })}
-            </React.Fragment>
-          ))}
-        </ChartGrid>
-        <div style={{ marginTop: '20px', fontSize: '0.9rem', color: '#666' }}>
-          WFH Period: {getTeamOfficeDays(Object.keys(monthSchedule)[0], monthInfo.yearMonth).period}
-        </div>
-      </ChartView>
-    );
-  };
+  const formatDateWithDay = useMemo(() => (dateString) => {
+    const date = parseISO(dateString);
+    const dayName = format(date, 'EEE', { locale: ko });
+    return `${dateString} (${dayName})`;
+  }, []);
 
   return (
     <AppContainer>

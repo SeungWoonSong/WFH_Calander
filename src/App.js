@@ -410,13 +410,119 @@ const HolidayItem = memo(({ date, name, formatDateWithDay }) => (
   </HolidayItemWrapper>
 ));
 
+const ChartView = styled.div`
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+`;
+
+const ChartGrid = styled.div`
+  display: grid;
+  grid-template-columns: 120px repeat(5, 1fr);
+  gap: 2px;
+  margin-top: 20px;
+`;
+
+const ChartHeader = styled.div`
+  background: #f8f9fa;
+  padding: 10px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 5px;
+`;
+
+const ChartCell = styled.div`
+  padding: 10px;
+  text-align: center;
+  background: ${props => props.isOfficeDay ? '#e3f2fd' : '#f1f8e9'};
+  color: ${props => props.isOfficeDay ? '#1565c0' : '#2e7d32'};
+  border-radius: 5px;
+  font-weight: 500;
+`;
+
+const ChartTeamName = styled.div`
+  padding: 10px;
+  font-weight: bold;
+  text-align: left;
+  display: flex;
+  align-items: center;
+`;
+
+const ViewToggle = styled.button`
+  padding: 8px 16px;
+  background: #1a237e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #3949ab;
+  }
+`;
+
+const MonthSelector = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+`;
+
+const MonthButton = styled.button`
+  padding: 8px 16px;
+  background: ${props => props.active ? '#1a237e' : '#ffffff'};
+  color: ${props => props.active ? '#ffffff' : '#1a237e'};
+  border: 1px solid #1a237e;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${props => props.active ? '#1a237e' : '#e8eaf6'};
+  }
+`;
+
+const NavigationButton = styled.button`
+  padding: 8px 12px;
+  background: #ffffff;
+  color: #1a237e;
+  border: 1px solid #1a237e;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #e8eaf6;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
 function App() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [activeTab, setActiveTab] = useState('holidays');
+  const [showChart, setShowChart] = useState(false);
+  const [monthOffset, setMonthOffset] = useState(0);
   const today = useMemo(() => new Date(), []);
   const nextMonth = useMemo(() => {
     const next = new Date(today);
     next.setMonth(next.getMonth() + 1);
+    return next;
+  }, [today]);
+
+  const nextNextMonth = useMemo(() => {
+    const next = new Date(today);
+    next.setMonth(next.getMonth() + 2);
     return next;
   }, [today]);
 
@@ -426,6 +532,9 @@ function App() {
   const currentMonth = useMemo(() => format(today, 'MMMM'), [today]);
   const nextMonthName = useMemo(() => format(nextMonth, 'MMMM'), [nextMonth]);
   const nextMonthYearMonth = useMemo(() => format(nextMonth, 'yyyy-MM'), [nextMonth]);
+
+  const nextNextMonthName = useMemo(() => format(nextNextMonth, 'MMMM'), [nextNextMonth]);
+  const nextNextMonthYearMonth = useMemo(() => format(nextNextMonth, 'yyyy-MM'), [nextNextMonth]);
 
   const formatDateWithDay = useMemo(() => (dateString) => {
     const date = parseISO(dateString);
@@ -483,27 +592,96 @@ function App() {
     return isWorkDay ? 'Office' : 'Home';
   }, [currentDate, currentDayName, today, currentYearMonth]);
 
+  const getMonthInfo = (offset) => {
+    const date = new Date(today);
+    date.setMonth(date.getMonth() + offset);
+    return {
+      yearMonth: format(date, 'yyyy-MM'),
+      monthName: format(date, 'MMMM')
+    };
+  };
+
+  const renderTeamChart = () => {
+    const weekDays = ['월', '화', '수', '목', '금'];
+    const monthInfo = getMonthInfo(monthOffset);
+    const monthSchedule = getTeamSchedule(monthInfo.yearMonth);
+    
+    return (
+      <ChartView>
+        <ViewToggle onClick={() => setShowChart(false)}>
+          Switch to Card View
+        </ViewToggle>
+        <MonthSelector>
+          <NavigationButton 
+            onClick={() => setMonthOffset(prev => prev - 1)}
+          >
+            &lt;
+          </NavigationButton>
+          <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+            {monthInfo.monthName}
+          </div>
+          <NavigationButton 
+            onClick={() => setMonthOffset(prev => prev + 1)}
+          >
+            &gt;
+          </NavigationButton>
+        </MonthSelector>
+        <h3>{monthInfo.monthName} Team Office Schedule</h3>
+        <ChartGrid>
+          <ChartHeader>Team</ChartHeader>
+          {weekDays.map(day => (
+            <ChartHeader key={day}>{day}</ChartHeader>
+          ))}
+          
+          {Object.entries(monthSchedule).map(([team, schedule]) => (
+            <React.Fragment key={team}>
+              <ChartTeamName>{team}</ChartTeamName>
+              {weekDays.map(day => {
+                const isOfficeDay = workPatterns[schedule.pattern].includes(day);
+                return (
+                  <ChartCell key={`${team}-${day}`} isOfficeDay={isOfficeDay}>
+                    {isOfficeDay ? 'Office' : 'Home'}
+                  </ChartCell>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </ChartGrid>
+        <div style={{ marginTop: '20px', fontSize: '0.9rem', color: '#666' }}>
+          WFH Period: {getTeamOfficeDays(Object.keys(monthSchedule)[0], monthInfo.yearMonth).period}
+        </div>
+      </ChartView>
+    );
+  };
+
   return (
     <AppContainer>
       <Title>Work From Home Schedule</Title>
-      <StatusBoard>
-        <TeamGrid>
-          {Object.keys(initialTeamPatterns).map((team) => (
-            <TeamCard key={team} team={team} status={getWorkStatus(team)} />
-          ))}
-        </TeamGrid>
-      </StatusBoard>
-      
-      <TeamButtons>
-        {Object.keys(initialTeamPatterns).map((team) => (
-          <TeamButton
-            key={team}
-            onClick={() => setSelectedTeam(team)}
-          >
-            {team}
-          </TeamButton>
-        ))}
-      </TeamButtons>
+      {!showChart ? (
+        <>
+          <ViewToggle onClick={() => setShowChart(true)}>
+            Switch to Chart View
+          </ViewToggle>
+          <StatusBoard>
+            <TeamGrid>
+              {Object.keys(initialTeamPatterns).map((team) => (
+                <TeamCard key={team} team={team} status={getWorkStatus(team)} />
+              ))}
+            </TeamGrid>
+          </StatusBoard>
+          
+          <TeamButtons>
+            {Object.keys(initialTeamPatterns).map((team) => (
+              <TeamButton
+                key={team}
+                onClick={() => setSelectedTeam(team)}
+              >
+                {team}
+              </TeamButton>
+            ))}
+          </TeamButtons>
+        </>
+      ) : renderTeamChart()}
       
       {selectedTeam && (
         <StatusMessage>

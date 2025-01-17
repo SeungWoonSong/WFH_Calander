@@ -402,6 +402,7 @@ function App() {
   const currentDate = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
   const currentDayName = useMemo(() => format(today, 'E'), [today]);
   const currentYearMonth = useMemo(() => format(today, 'yyyy-MM'), [today]);
+  const currentMonth = useMemo(() => format(today, 'MMM'), [today]);
 
   const formatDateWithDay = useMemo(() => (dateString) => {
     const date = parseISO(dateString);
@@ -483,7 +484,7 @@ function App() {
         <StatusMessage>
           {selectedTeam} team is <StatusText status={getWorkStatus(selectedTeam)}>{getWorkStatus(selectedTeam)}</StatusText> today
           <div className="office-days">
-            <strong>Office Days</strong>: {getTeamOfficeDays(selectedTeam).join(', ')}
+            <strong>{currentMonth} Office Days</strong>: {getTeamOfficeDays(selectedTeam).join(', ')}
           </div>
         </StatusMessage>
       )}

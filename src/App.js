@@ -206,6 +206,17 @@ const StatusMessage = styled.div`
   border: 1px solid rgba(0, 0, 0, 0.05);
   font-size: 1.1rem;
 
+  .office-days {
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: #666;
+    
+    strong {
+      color: #1565c0;
+      font-weight: 600;
+    }
+  }
+
   @media (max-width: 768px) {
     display: none;
   }
@@ -390,12 +401,31 @@ function App() {
   const today = useMemo(() => new Date(), []);
   const currentDate = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
   const currentDayName = useMemo(() => format(today, 'E'), [today]);
+  const currentYearMonth = useMemo(() => format(today, 'yyyy-MM'), [today]);
 
   const formatDateWithDay = useMemo(() => (dateString) => {
     const date = parseISO(dateString);
     const dayName = format(date, 'EEE', { locale: ko });
     return `${dateString} (${dayName})`;
   }, []);
+
+  const getTeamOfficeDays = useMemo(() => (team) => {
+    const currentMonthSchedule = getTeamSchedule(currentYearMonth);
+    const teamPattern = currentMonthSchedule[team];
+    const workDays = workPatterns[teamPattern];
+    
+    // Convert Korean days to English
+    return workDays.map(day => {
+      switch(day) {
+        case '월': return 'Mon';
+        case '화': return 'Tue';
+        case '수': return 'Wed';
+        case '목': return 'Thu';
+        case '금': return 'Fri';
+        default: return day;
+      }
+    });
+  }, [currentYearMonth]);
 
   const getWorkStatus = useMemo(() => (team) => {
     if (isWeekend(today)) {
@@ -407,7 +437,6 @@ function App() {
     }
     
     // Get current month's schedule
-    const currentYearMonth = format(today, 'yyyy-MM');
     const currentMonthSchedule = getTeamSchedule(currentYearMonth);
     
     // Get team's current work pattern
@@ -426,7 +455,7 @@ function App() {
     }
     
     return isWorkDay ? 'Office' : 'Home';
-  }, [currentDate, currentDayName, today]);
+  }, [currentDate, currentDayName, today, currentYearMonth]);
 
   return (
     <AppContainer>
@@ -453,6 +482,9 @@ function App() {
       {selectedTeam && (
         <StatusMessage>
           {selectedTeam} team is <StatusText status={getWorkStatus(selectedTeam)}>{getWorkStatus(selectedTeam)}</StatusText> today
+          <div className="office-days">
+            <strong>Office Days</strong>: {getTeamOfficeDays(selectedTeam).join(', ')}
+          </div>
         </StatusMessage>
       )}
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import styled from '@emotion/styled';
 import { format, isWeekend, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -394,12 +394,64 @@ const HolidayItemWrapper = styled.li`
   }
 `;
 
-const TeamCard = memo(({ team, status }) => (
-  <TeamCardWrapper status={status}>
-    <h3>{team}</h3>
-    <p>{status}</p>
-  </TeamCardWrapper>
-));
+const EasterEgg = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: ${props => props.show ? 1 : 0};
+  visibility: ${props => props.show ? 'visible' : 'hidden'};
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  z-index: 1000;
+
+  img {
+    max-width: 80%;
+    max-height: 80%;
+    opacity: ${props => props.show ? 1 : 0};
+    transform: scale(${props => props.show ? 1 : 0.8});
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+`;
+
+const TeamCard = memo(({ team, status }) => {
+  // eslint-disable-next-line no-unused-vars
+  const [clicks, setClicks] = useState([]);
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
+
+  const handleClick = useCallback(() => {
+    if (team !== 'Adelie') return;
+
+    const now = Date.now();
+    setClicks(prev => {
+      const newClicks = [...prev, now].filter(click => now - click <= 2000);
+      if (newClicks.length >= 10) {
+        setShowEasterEgg(true);
+        return [];
+      }
+      return newClicks;
+    });
+  }, [team]);
+
+  return (
+    <>
+      <TeamCardWrapper status={status} onClick={handleClick}>
+        <h3>{team}</h3>
+        <p>{status}</p>
+      </TeamCardWrapper>
+      <EasterEgg 
+        show={showEasterEgg} 
+        onClick={() => setShowEasterEgg(false)}
+      >
+        <img src="/JaeSungTheKing.png" alt="Easter Egg" />
+      </EasterEgg>
+    </>
+  );
+});
 
 const HolidayItem = memo(({ date, name, formatDateWithDay }) => (
   <HolidayItemWrapper>

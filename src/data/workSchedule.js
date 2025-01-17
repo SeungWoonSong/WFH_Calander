@@ -20,22 +20,66 @@ export const initialTeamPatterns = {
   Moonwalker: 7,
 };
 
+// 월의 마지막 날짜와 요일을 구하는 함수
+const getLastDayInfo = (year, month) => {
+  const lastDay = new Date(year, month, 0);
+  return {
+    date: lastDay.getDate(),
+    day: lastDay.getDay() // 0: 일요일, 1: 월요일, ..., 6: 토요일
+  };
+};
+
 // 월별 패턴 계산 함수
 const getMonthlyPattern = (startPattern, monthOffset) => {
-  // (시작 패턴 + 월 오프셋 - 1) % 7 + 1
-  // -1과 +1을 하는 이유는 패턴이 1부터 7까지이기 때문
   return ((startPattern + monthOffset - 1) % 7) + 1;
+};
+
+// 재택 기간을 계산하는 함수
+const getWFHPeriod = (year, month) => {
+  // 시작일 계산 (전 달의 마지막 주 월요일 또는 현재 달의 첫 번째 월요일)
+  const firstDay = new Date(year, month - 1, 1);
+  const firstDayOfWeek = firstDay.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
+  const daysUntilFirstMonday = (8 - firstDayOfWeek) % 7;
+  const startDate = new Date(year, month - 1, 1 + daysUntilFirstMonday);
+  
+  // 이전 달의 마지막 날 정보
+  const prevMonthLastDay = getLastDayInfo(year, month - 1);
+  if (prevMonthLastDay.day < 5) { // 이전 달이 금요일 전에 끝나면
+    startDate.setDate(startDate.getDate() - 7); // 이전 달의 마지막 주 월요일로 설정
+  }
+
+  // 종료일 계산 (현재 달의 마지막 금요일)
+  const lastDay = getLastDayInfo(year, month);
+  const lastDayDate = new Date(year, month - 1, lastDay.date);
+  const daysToSubtract = (lastDayDate.getDay() + 2) % 7; // 마지막 금요일까지의 차이
+  const endDate = new Date(year, month - 1, lastDay.date - daysToSubtract);
+
+  // 날짜 포맷팅
+  const formatDate = (date) => {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}/${day}`;
+  };
+
+  return {
+    start: formatDate(startDate),
+    end: formatDate(endDate)
+  };
 };
 
 // 특정 년월의 팀별 스케줄 생성
 const generateMonthlySchedule = (yearMonth) => {
   const [year, month] = yearMonth.split('-').map(Number);
-  // 2025-01 기준으로 몇 개월이 지났는지 계산
   const monthsOffset = (year - 2025) * 12 + (month - 1);
 
   const schedule = {};
   Object.entries(initialTeamPatterns).forEach(([team, startPattern]) => {
-    schedule[team] = getMonthlyPattern(startPattern, monthsOffset);
+    const pattern = getMonthlyPattern(startPattern, monthsOffset);
+    const period = getWFHPeriod(year, month);
+    schedule[team] = {
+      pattern,
+      period: `${period.start} ~ ${period.end}`
+    };
   });
 
   return schedule;

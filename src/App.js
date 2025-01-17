@@ -435,19 +435,22 @@ function App() {
 
   const getTeamOfficeDays = useMemo(() => (team, yearMonth) => {
     const monthSchedule = getTeamSchedule(yearMonth);
-    const teamPattern = monthSchedule[team];
-    const workDays = workPatterns[teamPattern];
+    const teamSchedule = monthSchedule[team];
+    const workDays = workPatterns[teamSchedule.pattern];
     
-    return workDays.map(day => {
-      switch(day) {
-        case '월': return 'Mon';
-        case '화': return 'Tue';
-        case '수': return 'Wed';
-        case '목': return 'Thu';
-        case '금': return 'Fri';
-        default: return day;
-      }
-    });
+    return {
+      workDays: workDays.map(day => {
+        switch(day) {
+          case '월': return 'Mon';
+          case '화': return 'Tue';
+          case '수': return 'Wed';
+          case '목': return 'Thu';
+          case '금': return 'Fri';
+          default: return day;
+        }
+      }),
+      period: teamSchedule.period
+    };
   }, []);
 
   const getWorkStatus = useMemo(() => (team) => {
@@ -463,8 +466,8 @@ function App() {
     const currentMonthSchedule = getTeamSchedule(currentYearMonth);
     
     // Get team's current work pattern
-    const teamPattern = currentMonthSchedule[team];
-    const workDays = workPatterns[teamPattern];
+    const teamSchedule = currentMonthSchedule[team];
+    const workDays = workPatterns[teamSchedule.pattern];
     const isWorkDay = workDays.includes(
       currentDayName === 'Mon' ? '월' :
       currentDayName === 'Tue' ? '화' :
@@ -507,10 +510,14 @@ function App() {
           {selectedTeam} team is <StatusText status={getWorkStatus(selectedTeam)}>{getWorkStatus(selectedTeam)}</StatusText> today
           <div className="office-days">
             <div className="schedule-row">
-              <strong><span className="month">{currentMonth}</span> Office Days</strong> <span className="tag">(Current)</span>: {getTeamOfficeDays(selectedTeam, currentYearMonth).join(', ')}
+              <strong><span className="month">{currentMonth}</span> Schedule</strong> <span className="tag">(Current)</span>:
+              <div>Office Days: {getTeamOfficeDays(selectedTeam, currentYearMonth).workDays.join(', ')}</div>
+              <div>WFH Period: {getTeamOfficeDays(selectedTeam, currentYearMonth).period}</div>
             </div>
             <div className="schedule-row">
-              <strong><span className="month">{nextMonthName}</span> Office Days</strong> <span className="tag">(Upcoming)</span>: {getTeamOfficeDays(selectedTeam, nextMonthYearMonth).join(', ')}
+              <strong><span className="month">{nextMonthName}</span> Schedule</strong> <span className="tag">(Upcoming)</span>:
+              <div>Office Days: {getTeamOfficeDays(selectedTeam, nextMonthYearMonth).workDays.join(', ')}</div>
+              <div>WFH Period: {getTeamOfficeDays(selectedTeam, nextMonthYearMonth).period}</div>
             </div>
           </div>
         </StatusMessage>

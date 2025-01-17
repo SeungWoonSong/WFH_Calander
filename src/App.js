@@ -452,7 +452,13 @@ const TeamCard = memo(({ team, status }) => {
         show={showEasterEgg} 
         onClick={() => setShowEasterEgg(false)}
       >
-        <img src={`/${randomImage}.jpeg`} alt="Easter Egg" />
+        {showEasterEgg && (
+          <img 
+            src={`/${randomImage}.jpeg`} 
+            alt="Easter Egg" 
+            loading="lazy"
+          />
+        )}
       </EasterEgg>
     </>
   );

@@ -211,13 +211,24 @@ const StatusMessage = styled.div`
     font-size: 0.95rem;
     color: #666;
     
+    .schedule-row {
+      margin: 8px 0;
+    }
+
     strong {
       color: #1565c0;
       font-weight: 600;
-      
-      .month {
-        color: #1a237e;
-      }
+    }
+
+    .month {
+      font-weight: 700;
+    }
+
+    .tag {
+      font-size: 0.8rem;
+      color: #666;
+      font-weight: normal;
+      font-style: italic;
     }
   }
 
@@ -403,10 +414,18 @@ function App() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [activeTab, setActiveTab] = useState('holidays');
   const today = useMemo(() => new Date(), []);
+  const nextMonth = useMemo(() => {
+    const next = new Date(today);
+    next.setMonth(next.getMonth() + 1);
+    return next;
+  }, [today]);
+
   const currentDate = useMemo(() => format(today, 'yyyy-MM-dd'), [today]);
   const currentDayName = useMemo(() => format(today, 'E'), [today]);
   const currentYearMonth = useMemo(() => format(today, 'yyyy-MM'), [today]);
   const currentMonth = useMemo(() => format(today, 'MMMM'), [today]);
+  const nextMonthName = useMemo(() => format(nextMonth, 'MMMM'), [nextMonth]);
+  const nextMonthYearMonth = useMemo(() => format(nextMonth, 'yyyy-MM'), [nextMonth]);
 
   const formatDateWithDay = useMemo(() => (dateString) => {
     const date = parseISO(dateString);
@@ -414,12 +433,11 @@ function App() {
     return `${dateString} (${dayName})`;
   }, []);
 
-  const getTeamOfficeDays = useMemo(() => (team) => {
-    const currentMonthSchedule = getTeamSchedule(currentYearMonth);
-    const teamPattern = currentMonthSchedule[team];
+  const getTeamOfficeDays = useMemo(() => (team, yearMonth) => {
+    const monthSchedule = getTeamSchedule(yearMonth);
+    const teamPattern = monthSchedule[team];
     const workDays = workPatterns[teamPattern];
     
-    // Convert Korean days to English
     return workDays.map(day => {
       switch(day) {
         case '월': return 'Mon';
@@ -430,7 +448,7 @@ function App() {
         default: return day;
       }
     });
-  }, [currentYearMonth]);
+  }, []);
 
   const getWorkStatus = useMemo(() => (team) => {
     if (isWeekend(today)) {
@@ -488,7 +506,12 @@ function App() {
         <StatusMessage>
           {selectedTeam} team is <StatusText status={getWorkStatus(selectedTeam)}>{getWorkStatus(selectedTeam)}</StatusText> today
           <div className="office-days">
-            <strong><span className="month">{currentMonth}</span> Office Days</strong>: {getTeamOfficeDays(selectedTeam).join(', ')}
+            <div className="schedule-row">
+              <strong><span className="month">{currentMonth}</span> Office Days</strong> <span className="tag">(Current)</span>: {getTeamOfficeDays(selectedTeam, currentYearMonth).join(', ')}
+            </div>
+            <div className="schedule-row">
+              <strong><span className="month">{nextMonthName}</span> Office Days</strong> <span className="tag">(Upcoming)</span>: {getTeamOfficeDays(selectedTeam, nextMonthYearMonth).join(', ')}
+            </div>
           </div>
         </StatusMessage>
       )}

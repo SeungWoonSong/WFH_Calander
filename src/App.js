@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import styled from '@emotion/styled';
 import { format, isWeekend, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -843,6 +843,45 @@ const NavigationButton = styled.button`
   }
 `;
 
+// 푸터 스타일링
+const Footer = styled.footer`
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
+  padding: 20px 0;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+  color: #666;
+  
+  @media (max-width: 768px) {
+    margin-top: 30px;
+    padding: 15px 0;
+    font-size: 0.8rem;
+  }
+`;
+
+const FooterLink = styled.a`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #666;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 5px 10px;
+  border-radius: 20px;
+  
+  &:hover {
+    color: #1a237e;
+    background: #e8eaf6;
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
 function App() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [activeTab, setActiveTab] = useState('holidays');
@@ -998,7 +1037,8 @@ function App() {
       const [startMonth, startDay] = teamSchedule.period.split(' ~ ')[0].split('/').map(Number);
       const [endMonth, endDay] = teamSchedule.period.split(' ~ ')[1].split('/').map(Number);
       
-      const [year] = yearMonth.split('-').map(Number);
+      // year 변수는 현재 사용되지 않으므로 제거
+      // const [year] = yearMonth.split('-').map(Number);
       const currentDay = date.getDate();
       const currentMonth = date.getMonth() + 1;
       
@@ -1063,10 +1103,10 @@ function App() {
     return `${dateString} (${dayName})`;
   }, []);
 
-  // 모바일 환경 감지
-  const isMobile = useMemo(() => {
-    return window.innerWidth <= 768;
-  }, []);
+  // 모바일 환경 감지 - 필요할 때 주석 해제
+  // const isMobile = useMemo(() => {
+  //   return window.innerWidth <= 768;
+  // }, []);
   
   // 아이콘 컴포넌트
   const CalendarIcon = () => (
@@ -1118,6 +1158,21 @@ function App() {
   const handleTeamButtonClick = useCallback((team) => {
     setSelectedTeam(prev => prev === team ? null : team);
   }, []);
+  
+  // GitHub 및 LinkedIn 아이콘 컴포넌트
+  const GitHubIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  
+  const LinkedInIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <rect x="2" y="9" width="4" height="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="4" cy="4" r="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
   
   return (
     <AppContainer>
@@ -1209,6 +1264,15 @@ function App() {
           )}
         </HolidayList>
       </HolidaySection>
+      
+      <Footer>
+        <FooterLink href="https://github.com/SeungWoonSong/WFH_Calander" target="_blank" rel="noopener noreferrer">
+          <GitHubIcon /> GitHub
+        </FooterLink>
+        <FooterLink href="https://www.linkedin.com/in/sungwoonsong" target="_blank" rel="noopener noreferrer">
+          <LinkedInIcon /> LinkedIn
+        </FooterLink>
+      </Footer>
     </AppContainer>
   );
 }

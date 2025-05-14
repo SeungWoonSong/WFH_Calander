@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo, useCallback } from 'react';
+import React, { useState, useMemo, memo, useCallback, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { format, isWeekend, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -9,8 +9,12 @@ const AppContainer = styled.div`
   margin: 0 auto;
   padding: 40px 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e8eaf6 100%);
   min-height: 100vh;
+  
+  @media (max-width: 768px) {
+    padding: 20px 15px;
+  }
 `;
 
 const Title = styled.h1`
@@ -32,6 +36,16 @@ const Title = styled.h1`
     background: linear-gradient(90deg, #1a237e, #3949ab);
     border-radius: 2px;
   }
+  
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    
+    &:after {
+      width: 80px;
+      height: 3px;
+    }
+  }
 `;
 
 const StatusBoard = styled.div`
@@ -42,10 +56,12 @@ const StatusBoard = styled.div`
   margin-bottom: 40px;
   border: 1px solid rgba(255, 255, 255, 0.8);
   overflow-x: auto;
+  position: relative;
 
   @media (max-width: 768px) {
     padding: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
+    border-radius: 15px;
   }
 `;
 
@@ -56,8 +72,9 @@ const TeamGrid = styled.div`
   margin-bottom: 30px;
 
   @media (max-width: 768px) {
-    display: table;
-    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
     margin-bottom: 20px;
   }
 `;
@@ -66,9 +83,38 @@ const TeamCardWrapper = styled.div`
   background: #ffffff;
   padding: 20px;
   border-radius: 15px;
-  text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: left;
+  transition: all 0.3s ease;
   border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background-color: ${props => {
+      switch (props.status) {
+        case 'Office':
+          return '#1565c0';
+        case 'Home':
+          return '#2e7d32';
+        case 'Flexible Home':
+          return '#ef6c00';
+        case 'Weekend':
+          return '#c62828';
+        case 'Holiday':
+          return '#c62828';
+        default:
+          return '#9e9e9e';
+      }
+    }};
+  }
   
   &:hover {
     transform: translateY(-5px);
@@ -76,14 +122,14 @@ const TeamCardWrapper = styled.div`
   }
 
   @media (max-width: 768px) {
-    display: table-row;
-    padding: 0;
-    border-radius: 0;
-    border: none;
+    padding: 15px 15px 15px 20px;
+    margin-bottom: 5px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     
-    &:hover {
-      transform: none;
-      box-shadow: none;
+    &:active {
+      background-color: #f5f5f5;
     }
   }
 
@@ -93,14 +139,9 @@ const TeamCardWrapper = styled.div`
     font-size: 1.2rem;
 
     @media (max-width: 768px) {
-      display: table-cell;
-      padding: 12px;
       margin: 0;
       font-size: 1rem;
-      vertical-align: middle;
-      border-bottom: 1px solid #f0f0f0;
-      text-align: center;
-      width: 120px;
+      flex: 1;
     }
   }
   
@@ -141,17 +182,14 @@ const TeamCardWrapper = styled.div`
           return '#424242';
       }
     }};
+    display: inline-block;
+    text-align: center;
 
     @media (max-width: 768px) {
-      display: table-cell;
-      padding: 12px;
-      margin: 0;
-      border-radius: 6px;
-      vertical-align: middle;
-      border-bottom: 1px solid #f0f0f0;
-      text-align: center;
+      padding: 8px 12px;
       font-size: 0.9rem;
-      min-width: 120px;
+      border-radius: 20px;
+      min-width: 80px;
     }
   }
 `;
@@ -163,7 +201,15 @@ const TeamButtons = styled.div`
   margin: 40px 0;
 
   @media (max-width: 768px) {
-    display: none;
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 0;
+    margin: 20px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 `;
 
@@ -182,6 +228,9 @@ const TeamButton = styled.button`
   @media (max-width: 768px) {
     padding: 10px 15px;
     font-size: 0.9rem;
+    flex: 0 0 auto;
+    margin-right: 10px;
+    white-space: nowrap;
   }
 
   &:hover {
@@ -192,10 +241,15 @@ const TeamButton = styled.button`
   &:active {
     transform: translateY(0);
   }
+  
+  &.active {
+    background: linear-gradient(135deg, #4527a0 0%, #7e57c2 100%);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const StatusMessage = styled.div`
-  text-align: center;
+  text-align: left;
   padding: 20px;
   margin: 30px 0;
   background: #ffffff;
@@ -205,19 +259,67 @@ const StatusMessage = styled.div`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.05);
   font-size: 1.1rem;
+  position: relative;
+  overflow: hidden;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(to bottom, #1a237e, #3949ab);
+  }
+
+  .team-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+  }
+  
+  .team-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    
+    @media (max-width: 768px) {
+      font-size: 1.1rem;
+    }
+  }
 
   .office-days {
-    margin-top: 10px;
+    margin-top: 15px;
     font-size: 0.95rem;
     color: #666;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
     
     .schedule-row {
       margin: 8px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     strong {
       color: #1565c0;
       font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
     }
 
     .month {
@@ -229,11 +331,23 @@ const StatusMessage = styled.div`
       color: #666;
       font-weight: normal;
       font-style: italic;
+      margin-left: 5px;
+      padding: 2px 8px;
+      background: #e8eaf6;
+      border-radius: 10px;
+    }
+    
+    .schedule-detail {
+      margin-top: 8px;
+      padding-left: 10px;
+      border-left: 2px solid #e0e0e0;
     }
   }
 
   @media (max-width: 768px) {
-    display: none;
+    padding: 15px;
+    margin: 20px 0;
+    font-size: 1rem;
   }
 `;
 
@@ -418,7 +532,7 @@ const EasterEgg = styled.div`
   }
 `;
 
-const TeamCard = memo(({ team, status }) => {
+const TeamCard = memo(({ team, status, onClick }) => {
   // eslint-disable-next-line no-unused-vars
   const [clicks, setClicks] = useState([]);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
@@ -429,7 +543,10 @@ const TeamCard = memo(({ team, status }) => {
   });
 
   const handleClick = useCallback(() => {
-    if (team !== 'Adelie') return;
+    if (team !== 'Adelie') {
+      onClick && onClick();
+      return;
+    }
 
     const now = Date.now();
     setClicks(prev => {
@@ -440,13 +557,59 @@ const TeamCard = memo(({ team, status }) => {
       }
       return newClicks;
     });
-  }, [team]);
+  }, [team, onClick]);
+  
+  // 상태에 따른 아이콘 표시
+  const StatusIcon = () => {
+    switch(status) {
+      case 'Office':
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 2H5C3.89543 2 3 2.89543 3 4V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V4C21 2.89543 20.1046 2 19 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M8 2V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 2V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 15H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 9H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 15H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'Home':
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 22V12H15V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'Flexible Home':
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 22V12H15V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'Weekend':
+      case 'Holiday':
+        return (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <>
       <TeamCardWrapper status={status} onClick={handleClick}>
         <h3>{team}</h3>
-        <p>{status}</p>
+        <p>
+          <StatusIcon /> {status}
+        </p>
         {team === 'Adelie' && clicks.length > 0 && (
           <div style={{ 
             fontSize: '0.8rem', 
@@ -489,6 +652,24 @@ const ChartView = styled.div`
   padding: 20px;
   margin: 20px 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(to bottom, #1a237e, #3949ab);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 15px;
+    border-radius: 12px;
+    margin: 15px 0;
+  }
 `;
 
 const ChartGrid = styled.div`
@@ -496,6 +677,14 @@ const ChartGrid = styled.div`
   grid-template-columns: 120px repeat(5, 1fr);
   gap: 2px;
   margin-top: 20px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 100px repeat(5, 1fr);
+    gap: 1px;
+    margin-top: 15px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
 `;
 
 const ChartHeader = styled.div`
@@ -504,6 +693,12 @@ const ChartHeader = styled.div`
   font-weight: bold;
   text-align: center;
   border-radius: 5px;
+  
+  @media (max-width: 768px) {
+    padding: 8px 5px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+  }
 `;
 
 const ChartCell = styled.div`
@@ -513,6 +708,19 @@ const ChartCell = styled.div`
   color: ${props => props.isOfficeDay ? '#1565c0' : '#2e7d32'};
   border-radius: 5px;
   font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 8px 5px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+  }
 `;
 
 const ChartTeamName = styled.div`
@@ -521,21 +729,46 @@ const ChartTeamName = styled.div`
   text-align: left;
   display: flex;
   align-items: center;
+  
+  @media (max-width: 768px) {
+    padding: 8px 5px;
+    font-size: 0.9rem;
+  }
 `;
 
 const ViewToggle = styled.button`
-  padding: 8px 16px;
+  padding: 10px 18px;
   background: #1a237e;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 30px;
   cursor: pointer;
   margin-bottom: 20px;
   font-weight: 500;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 
   &:hover {
     background: #3949ab;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    margin: 0;
   }
 `;
 
@@ -547,6 +780,12 @@ const MonthSelector = styled.div`
   align-items: center;
   justify-content: center;
   text-align: center;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 36px 160px 36px;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
 `;
 
 const MonthDisplay = styled.div`
@@ -554,25 +793,53 @@ const MonthDisplay = styled.div`
   font-size: 1.1rem;
   min-width: 200px;
   text-align: center;
+  background: #f5f5f5;
+  padding: 8px 0;
+  border-radius: 20px;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    min-width: 160px;
+    padding: 6px 0;
+  }
 `;
 
 const NavigationButton = styled.button`
-  padding: 8px 12px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #ffffff;
   color: #1a237e;
   border: 1px solid #1a237e;
-  border-radius: 8px;
+  border-radius: 50%;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
     background: #e8eaf6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
   }
 `;
 
@@ -613,7 +880,7 @@ function App() {
     return (
       <ChartView>
         <ViewToggle onClick={() => setShowChart(false)}>
-          Switch to Card View
+          <CalendarIcon /> Switch to Card View
         </ViewToggle>
         <MonthSelector>
           <NavigationButton 
@@ -645,20 +912,49 @@ function App() {
                   {weekDays.map(day => {
                     const isOfficeDay = workPatterns[schedule.pattern].includes(day);
                     return (
-                      <ChartCell key={`${team}-${day}`} isOfficeDay={isOfficeDay}>
-                        {isOfficeDay ? 'Office' : 'Home'}
+                      <ChartCell 
+                        key={`${team}-${day}`} 
+                        isOfficeDay={isOfficeDay}
+                        onClick={() => handleTeamButtonClick(team)}
+                      >
+                        {isOfficeDay ? (
+                          <>
+                            <OfficeIcon /> Office
+                          </>
+                        ) : (
+                          <>
+                            <HomeIcon /> Home
+                          </>
+                        )}
                       </ChartCell>
                     );
                   })}
                 </React.Fragment>
               ))}
             </ChartGrid>
-            <div style={{ marginTop: '20px', fontSize: '0.9rem', color: '#666' }}>
-              WFH Period: {getTeamOfficeDays(Object.keys(monthSchedule)[0], monthInfo.yearMonth).period}
+            <div style={{ 
+              marginTop: '20px', 
+              fontSize: '0.9rem', 
+              color: '#666',
+              padding: '10px',
+              background: '#f8f9fa',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}>
+              <DateIcon /> WFH Period: {getTeamOfficeDays(Object.keys(monthSchedule)[0], monthInfo.yearMonth).period}
             </div>
           </>
         ) : (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '20px', 
+            color: '#666',
+            background: '#f8f9fa',
+            borderRadius: '10px',
+            marginTop: '20px'
+          }}>
             No schedule data available before January 2025
           </div>
         )}
@@ -767,18 +1063,79 @@ function App() {
     return `${dateString} (${dayName})`;
   }, []);
 
+  // 모바일 환경 감지
+  const isMobile = useMemo(() => {
+    return window.innerWidth <= 768;
+  }, []);
+  
+  // 아이콘 컴포넌트
+  const CalendarIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  
+  const ChartIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 20V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M12 20V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  
+  const HomeIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M9 22V12H15V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  
+  const OfficeIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 2H5C3.89543 2 3 2.89543 3 4V18C3 19.1046 3.89543 20 5 20H19C20.1046 20 21 19.1046 21 18V4C21 2.89543 20.1046 2 19 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M8 2V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16 2V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 15H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16 9H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16 15H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  
+  const DateIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  
+  // 팀 버튼 클릭 핸들러 개선
+  const handleTeamButtonClick = useCallback((team) => {
+    setSelectedTeam(prev => prev === team ? null : team);
+  }, []);
+  
   return (
     <AppContainer>
       <Title>Work From Home Schedule</Title>
       {!showChart ? (
         <>
           <ViewToggle onClick={() => setShowChart(true)}>
-            Switch to Chart View
+            <ChartIcon /> Switch to Chart View
           </ViewToggle>
           <StatusBoard>
             <TeamGrid>
               {Object.keys(initialTeamPatterns).map((team) => (
-                <TeamCard key={team} team={team} status={getWorkStatus(team)} />
+                <TeamCard 
+                  key={team} 
+                  team={team} 
+                  status={getWorkStatus(team)} 
+                  onClick={() => handleTeamButtonClick(team)}
+                />
               ))}
             </TeamGrid>
           </StatusBoard>
@@ -787,7 +1144,8 @@ function App() {
             {Object.keys(initialTeamPatterns).map((team) => (
               <TeamButton
                 key={team}
-                onClick={() => setSelectedTeam(team)}
+                onClick={() => handleTeamButtonClick(team)}
+                className={selectedTeam === team ? 'active' : ''}
               >
                 {team}
               </TeamButton>
@@ -798,17 +1156,26 @@ function App() {
       
       {selectedTeam && (
         <StatusMessage>
-          {selectedTeam} team is <StatusText status={getWorkStatus(selectedTeam)}>{getWorkStatus(selectedTeam)}</StatusText> today
+          <div className="team-status">
+            <div className="team-name">{selectedTeam}</div>
+            <StatusText status={getWorkStatus(selectedTeam)}>
+              {getWorkStatus(selectedTeam) === 'Office' ? <OfficeIcon /> : <HomeIcon />} {getWorkStatus(selectedTeam)}
+            </StatusText>
+          </div>
           <div className="office-days">
             <div className="schedule-row">
-              <strong><span className="month">{currentMonth}</span> Schedule</strong> <span className="tag">(Current)</span>:
-              <div>Office Days: {getTeamOfficeDays(selectedTeam, currentYearMonth).workDays.join(', ')}</div>
-              <div>WFH Period: {getTeamOfficeDays(selectedTeam, currentYearMonth).period}</div>
+              <strong><DateIcon /> <span className="month">{currentMonth}</span> Schedule <span className="tag">Current</span></strong>
+              <div className="schedule-detail">
+                <div>Office Days: {getTeamOfficeDays(selectedTeam, currentYearMonth).workDays.join(', ')}</div>
+                <div>WFH Period: {getTeamOfficeDays(selectedTeam, currentYearMonth).period}</div>
+              </div>
             </div>
             <div className="schedule-row">
-              <strong><span className="month">{nextMonthName}</span> Schedule</strong> <span className="tag">(Upcoming)</span>:
-              <div>Office Days: {getTeamOfficeDays(selectedTeam, nextMonthYearMonth).workDays.join(', ')}</div>
-              <div>WFH Period: {getTeamOfficeDays(selectedTeam, nextMonthYearMonth).period}</div>
+              <strong><DateIcon /> <span className="month">{nextMonthName}</span> Schedule <span className="tag">Upcoming</span></strong>
+              <div className="schedule-detail">
+                <div>Office Days: {getTeamOfficeDays(selectedTeam, nextMonthYearMonth).workDays.join(', ')}</div>
+                <div>WFH Period: {getTeamOfficeDays(selectedTeam, nextMonthYearMonth).period}</div>
+              </div>
             </div>
           </div>
         </StatusMessage>

@@ -695,11 +695,56 @@ function App() {
       return 'Holiday';
     }
     
-    // Get current month's schedule
-    const currentMonthSchedule = getTeamSchedule(currentYearMonth);
+    // 현재 날짜가 어느 달의 재택 주기에 속하는지 확인하는 함수
+    const isInWFHPeriod = (date, yearMonth) => {
+      const schedule = getTeamSchedule(yearMonth);
+      const teamSchedule = schedule[team];
+      const [startMonth, startDay] = teamSchedule.period.split(' ~ ')[0].split('/').map(Number);
+      const [endMonth, endDay] = teamSchedule.period.split(' ~ ')[1].split('/').map(Number);
+      
+      const [year] = yearMonth.split('-').map(Number);
+      const currentDay = date.getDate();
+      const currentMonth = date.getMonth() + 1;
+      
+      // 시작일과 종료일이 같은 달에 있는 경우
+      if (startMonth === endMonth) {
+        return currentMonth === startMonth && currentDay >= startDay && currentDay <= endDay;
+      }
+      
+      // 시작일과 종료일이 다른 달에 걸쳐 있는 경우
+      return (currentMonth === startMonth && currentDay >= startDay) || 
+             (currentMonth === endMonth && currentDay <= endDay);
+    };
     
-    // Get team's current work pattern
-    const teamSchedule = currentMonthSchedule[team];
+    // 현재 날짜가 현재 달의 재택 주기에 속하는지 확인
+    const isInCurrentMonthWFH = isInWFHPeriod(today, currentYearMonth);
+    
+    // 다음 달의 연월 계산
+    const nextMonthDate = new Date(today);
+    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+    const nextMonthYearMonth = format(nextMonthDate, 'yyyy-MM');
+    
+    // 이전 달의 연월 계산
+    const prevMonthDate = new Date(today);
+    prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+    const prevMonthYearMonth = format(prevMonthDate, 'yyyy-MM');
+    
+    // 현재 날짜가 다음 달의 재택 주기에 속하는지 확인
+    const isInNextMonthWFH = isInWFHPeriod(today, nextMonthYearMonth);
+    
+    // 현재 날짜가 이전 달의 재택 주기에 속하는지 확인
+    const isInPrevMonthWFH = isInWFHPeriod(today, prevMonthYearMonth);
+    
+    // 현재 날짜가 속한 달의 재택 주기 정보 가져오기
+    let targetMonthYearMonth = currentYearMonth;
+    if (!isInCurrentMonthWFH && isInNextMonthWFH) {
+      targetMonthYearMonth = nextMonthYearMonth;
+    } else if (!isInCurrentMonthWFH && isInPrevMonthWFH) {
+      targetMonthYearMonth = prevMonthYearMonth;
+    }
+    
+    const targetMonthSchedule = getTeamSchedule(targetMonthYearMonth);
+    const teamSchedule = targetMonthSchedule[team];
     const workDays = workPatterns[teamSchedule.pattern];
     const isWorkDay = workDays.includes(
       currentDayName === 'Mon' ? '월' :

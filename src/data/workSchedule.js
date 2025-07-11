@@ -20,15 +20,6 @@ export const initialTeamPatterns = {
   Moonwalker: 7,
 };
 
-// 월의 마지막 날짜와 요일을 구하는 함수
-const getLastDayInfo = (year, month) => {
-  const lastDay = new Date(year, month, 0);
-  return {
-    date: lastDay.getDate(),
-    day: lastDay.getDay() // 0: 일요일, 1: 월요일, ..., 6: 토요일
-  };
-};
-
 // 월별 패턴 계산 함수
 const getMonthlyPattern = (startPattern, monthOffset) => {
   return ((startPattern + monthOffset - 1) % 7) + 1;
@@ -36,24 +27,58 @@ const getMonthlyPattern = (startPattern, monthOffset) => {
 
 // 재택 기간을 계산하는 함수
 const getWFHPeriod = (year, month) => {
-  // 시작일 계산 (전 달의 마지막 주 월요일 또는 현재 달의 첫 번째 월요일)
-  const firstDay = new Date(year, month - 1, 1);
-  const firstDayOfWeek = firstDay.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
-  const daysUntilFirstMonday = (8 - firstDayOfWeek) % 7;
-  const startDate = new Date(year, month - 1, 1 + daysUntilFirstMonday);
-  
-  // 이전 달의 마지막 날 정보
-  const prevMonthLastDay = getLastDayInfo(year, month - 1);
-  if (prevMonthLastDay.day < 5) { // 이전 달이 금요일 전에 끝나면
-    startDate.setDate(startDate.getDate() - 7); // 이전 달의 마지막 주 월요일로 설정
+  // 2025년 각 월별 재택 기간 (이미지 기반)
+  const wfhPeriods2025 = {
+    1: { start: '1/6', end: '1/31' },
+    2: { start: '2/3', end: '2/28' },
+    3: { start: '3/3', end: '3/28' },
+    4: { start: '3/31', end: '4/25' },
+    5: { start: '4/28', end: '5/30' },
+    6: { start: '6/2', end: '6/27' },
+    7: { start: '6/30', end: '8/1' },
+    8: { start: '8/4', end: '8/29' },
+    9: { start: '9/1', end: '9/26' },
+    10: { start: '9/29', end: '10/31' },
+    11: { start: '11/3', end: '11/28' },
+    12: { start: '12/1', end: '12/26' }
+  };
+
+  // 2025년이면 하드코딩된 기간 사용
+  if (year === 2025 && wfhPeriods2025[month]) {
+    return wfhPeriods2025[month];
   }
 
-  // 종료일 계산 (현재 달의 마지막 금요일)
-  const lastDay = getLastDayInfo(year, month);
-  const lastDayDate = new Date(year, month - 1, lastDay.date);
-  const daysToSubtract = (lastDayDate.getDay() + 2) % 7; // 마지막 금요일까지의 차이
-  const endDate = new Date(year, month - 1, lastDay.date - daysToSubtract);
+  // 2025년이 아닌 경우 주(week) 기반 계산
+  // 각 월의 주 수 패턴 (5월, 7월, 10월은 5주, 나머지는 4주)
+  const weekCounts = {
+    1: 4, 2: 4, 3: 4, 4: 4, 5: 5, 6: 4,
+    7: 5, 8: 4, 9: 4, 10: 5, 11: 4, 12: 4
+  };
 
+  // 연도의 첫 날 요일 확인
+  const firstDayOfYear = new Date(year, 0, 1);
+  const firstDayOfWeek = firstDayOfYear.getDay(); // 0=일, 1=월, ..., 6=토
+  
+  // 첫 주의 시작일 계산 (첫 번째 월요일)
+  let firstMonday = new Date(year, 0, 1);
+  if (firstDayOfWeek !== 1) { // 1월 1일이 월요일이 아니면
+    const daysToMonday = firstDayOfWeek === 0 ? 1 : 8 - firstDayOfWeek;
+    firstMonday = new Date(year, 0, 1 + daysToMonday);
+  }
+  
+  // 시작 주 계산
+  let startWeek = 1;
+  for (let m = 1; m < month; m++) {
+    startWeek += weekCounts[m];
+  }
+  
+  // 시작일과 종료일 계산
+  const startDate = new Date(firstMonday);
+  startDate.setDate(startDate.getDate() + (startWeek - 1) * 7);
+  
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + weekCounts[month] * 7 - 3); // 금요일까지 (-3일)
+  
   // 날짜 포맷팅
   const formatDate = (date) => {
     const month = date.getMonth() + 1;
